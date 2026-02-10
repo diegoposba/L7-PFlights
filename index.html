@@ -1,13 +1,63 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>l7-pflights</title>
+    <title>Vols Polynésie Française — L7</title>
   </head>
   <body>
-    <div id="app"></div>
+    <!-- Conteneur carte plein écran -->
+    <div id="map"></div>
+
+    <!-- Panneau latéral -->
+    <aside id="sidebar">
+      <h1>Vols Polynésie Française</h1>
+
+      <!-- Stats -->
+      <section id="stats" class="stats-grid"></section>
+
+      <!-- Filtres -->
+      <section class="filter-section">
+        <h2>Filtres</h2>
+        <label class="checkbox-label">
+          <input type="checkbox" id="filter-interisland" checked />
+          <span class="legend-dot interile"></span>
+          Inter-îles
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="filter-international" checked />
+          <span class="legend-dot international"></span>
+          International
+        </label>
+
+        <label class="select-label" for="filter-airline">Compagnie</label>
+        <select id="filter-airline">
+          <option value="all">Toutes</option>
+        </select>
+      </section>
+
+      <!-- Info aéroport sélectionné -->
+      <section id="selected-info">
+        <p class="hint">Cliquez sur un aéroport pour voir ses routes</p>
+      </section>
+
+      <!-- Légende archipels -->
+      <section class="legend-section">
+        <h2>Archipels</h2>
+        <div id="legend-archipels"></div>
+      </section>
+
+      <!-- API AviationStack -->
+      <section class="api-section">
+        <h2>AviationStack API</h2>
+        <p class="api-hint">Optionnel — enrichit les routes avec des données temps réel (100 req/mois)</p>
+        <input type="text" id="api-key" placeholder="Clé API AviationStack" />
+        <button id="btn-load-api" class="btn-primary">Charger depuis l'API</button>
+        <div id="api-status"></div>
+      </section>
+    </aside>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
