@@ -319,6 +319,55 @@ select:focus {
   font-size: 12px;
 }
 
+/* ─── Conteneur Earth (globe) ───────────────────────────────── */
+
+#map-earth {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: none;
+}
+
+#map-earth.active {
+  display: block;
+}
+
+/* ─── Toggle Globe / 2D ─────────────────────────────────────── */
+
+.map-toggle-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(8px);
+  color: #e0e0e0;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  line-height: 1;
+}
+
+.map-toggle-btn:hover {
+  background: rgba(79, 195, 247, 0.15);
+  border-color: #4FC3F7;
+}
+
+.map-toggle-btn.active {
+  background: rgba(79, 195, 247, 0.2);
+  border-color: #4FC3F7;
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────────── */
 
 #sidebar::-webkit-scrollbar {
