@@ -199,7 +199,7 @@ function renderRoutes(routeData) {
         dashArray: [5, 5],
         opacity: 0.4,
         segmentNumber: 30,
-        thetaOffset: 0.3,
+        thetaOffset: 0.6,
       });
 
     // Couche 2 : avions animés le long de l'arc
@@ -219,7 +219,7 @@ function renderRoutes(routeData) {
         lineTexture: true,
         iconStep: 10,
         segmentNumber: 30,
-        thetaOffset: 0.3,
+        thetaOffset: 0.6,
       });
 
     scene.addLayer(interIslandArcLayer);
