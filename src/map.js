@@ -211,7 +211,7 @@ function renderRoutes(routeData) {
       .texture('plane')
       .animate({
         duration: 2,
-        interval: 0.2,
+        interval: 0.5,
         trailLength: 0.05,
       })
       .style({
