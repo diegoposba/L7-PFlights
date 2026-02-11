@@ -1,5 +1,5 @@
 // Module carte L7 — Scene, layers, popups, interactivité
-import { Scene, PointLayer, LineLayer, Popup, Zoom, Scale, MapLibre } from '@antv/l7';
+import { Scene, PointLayer, LineLayer, Popup, Zoom, Scale, Mapbox } from '@antv/l7';
 import { airports, airportByIata, ARCHIPELS } from './airports.js';
 import { routes, AIRLINES } from './routes.js';
 
@@ -8,9 +8,10 @@ let airportLayer = null;
 let intlAirportLayer = null;
 let airportLabelLayer = null;
 let interIslandArcLayer = null;
+let interIslandFlyLayer = null;
 let internationalArcLayer = null;
+let internationalFlyLayer = null;
 let currentPopup = null;
-let highlightedAirport = null;
 
 // Données de routes actives (hardcodées + API)
 let activeRoutes = [...routes];
@@ -20,14 +21,22 @@ let activeRoutes = [...routes];
 export function initMap(containerId) {
   scene = new Scene({
     id: containerId,
-    map: new MapLibre({
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    map: new Mapbox({
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: [-149.5, -15.5],
-      zoom: 5.5,
+      zoom: 1,
+      pitch: 40,
+      rotation: 10,
       minZoom: 2,
       maxZoom: 15,
+      token: import.meta.env.VITE_MAPBOX_TOKEN,
     }),
   });
+
+  scene.addImage(
+    'plane',
+    'https://gw.alipayobjects.com/zos/bmw-prod/0ca1668e-38c2-4010-8568-b57cb33839b9.svg',
+  );
 
   scene.on('loaded', () => {
     addControls();
@@ -51,6 +60,26 @@ function addControls() {
 function renderAirports() {
   const pfData = airports.filter(a => a.archipel !== 'INTERNATIONAL');
   const intlData = airports.filter(a => a.archipel === 'INTERNATIONAL');
+
+  // Effet pulsant (dotPoint) sur les aéroports PF
+  const pfDotLayer = new PointLayer({ zIndex: 8 })
+    .source(pfData, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    })
+    .shape('circle')
+    .size('hub', (hub) => (hub ? 35 : 25))
+    .color('archipel', (archipel) => ARCHIPELS[archipel]?.color || '#fff')
+    .animate(true);
+
+  // Effet pulsant (dotPoint) sur les aéroports internationaux
+  const intlDotLayer = new PointLayer({ zIndex: 8 })
+    .source(intlData, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    })
+    .shape('circle')
+    .size(35)
+    .color(ARCHIPELS.INTERNATIONAL.color)
+    .animate(true);
 
   // Aéroports PF : cercles colorés par archipel
   airportLayer = new PointLayer({ zIndex: 10 })
@@ -96,6 +125,8 @@ function renderAirports() {
       padding: [2, 2],
     });
 
+  scene.addLayer(pfDotLayer);
+  scene.addLayer(intlDotLayer);
   scene.addLayer(airportLayer);
   scene.addLayer(intlAirportLayer);
   scene.addLayer(airportLabelLayer);
@@ -103,12 +134,10 @@ function renderAirports() {
   // Événements sur les aéroports PF
   airportLayer.on('mousemove', onAirportHover);
   airportLayer.on('mouseout', hidePopup);
-  airportLayer.on('click', onAirportClick);
 
   // Événements sur les aéroports internationaux
   intlAirportLayer.on('mousemove', onAirportHover);
   intlAirportLayer.on('mouseout', hidePopup);
-  intlAirportLayer.on('click', onAirportClick);
 }
 
 function onAirportHover(e) {
@@ -121,78 +150,113 @@ function onAirportHover(e) {
   `);
 }
 
-function onAirportClick(e) {
-  const { iata } = e.feature;
-  highlightAirport(iata);
-}
-
 // ─── Rendu des routes (arcs) ──────────────────────────────────────────────────
 
 function renderRoutes(routeData) {
   const data = routeData || activeRoutes;
 
   // Supprimer les anciennes couches d'arcs
-  if (interIslandArcLayer) {
-    scene.removeLayer(interIslandArcLayer);
-    interIslandArcLayer = null;
-  }
-  if (internationalArcLayer) {
-    scene.removeLayer(internationalArcLayer);
-    internationalArcLayer = null;
-  }
+  [interIslandArcLayer, interIslandFlyLayer, internationalArcLayer, internationalFlyLayer]
+    .forEach(layer => { if (layer) scene.removeLayer(layer); });
+  interIslandArcLayer = null;
+  interIslandFlyLayer = null;
+  internationalArcLayer = null;
+  internationalFlyLayer = null;
 
   // Construire les données géo pour les arcs
   const interIslandData = buildArcData(data.filter(r => r.type === 'interile'));
   const internationalData = buildArcData(data.filter(r => r.type === 'international'));
 
-  // Arcs inter-îles (bleu)
+  const arcParser = {
+    type: 'json',
+    x: 'fromLng',
+    y: 'fromLat',
+    x1: 'toLng',
+    y1: 'toLat',
+  };
+
+  // ── Arcs 3D inter-îles ──────────────────────────────────────────────────────
   if (interIslandData.length > 0) {
+    // Couche 1 : arc pointillé (tracé de la route)
     interIslandArcLayer = new LineLayer({ zIndex: 5 })
-      .source(interIslandData, {
-        parser: {
-          type: 'json',
-          x: 'fromLng',
-          y: 'fromLat',
-          x1: 'toLng',
-          y1: 'toLat',
-        },
-      })
-      .shape('arc')
-      .size(1.5)
+      .source(interIslandData, { parser: arcParser })
+      .shape('arc3d')
+      .size(1)
       .color('#4FC3F7')
       .style({
-        opacity: 0.6,
-        blur: 0.5,
+        lineType: 'dash',
+        dashArray: [5, 5],
+        opacity: 0.4,
+        segmentNumber: 30,
+        thetaOffset: 0.3,
+      });
+
+    // Couche 2 : avions animés le long de l'arc
+    interIslandFlyLayer = new LineLayer({ zIndex: 6, blend: 'normal' })
+      .source(interIslandData, { parser: arcParser })
+      .shape('arc3d')
+      .size(15)
+      .color('#4FC3F7')
+      .texture('plane')
+      .animate({
+        duration: 2,
+        interval: 0.2,
+        trailLength: 0.05,
+      })
+      .style({
+        textureBlend: 'replace',
+        lineTexture: true,
+        iconStep: 10,
+        segmentNumber: 30,
+        thetaOffset: 0.3,
       });
 
     scene.addLayer(interIslandArcLayer);
+    scene.addLayer(interIslandFlyLayer);
 
     // Événements sur les arcs
     interIslandArcLayer.on('mousemove', onArcHover);
     interIslandArcLayer.on('mouseout', hidePopup);
   }
 
-  // Arcs internationaux (rouge/orange)
+  // ── Arcs 3D internationaux ──────────────────────────────────────────────────
   if (internationalData.length > 0) {
+    // Couche 1 : arc pointillé (tracé de la route)
     internationalArcLayer = new LineLayer({ zIndex: 5 })
-      .source(internationalData, {
-        parser: {
-          type: 'json',
-          x: 'fromLng',
-          y: 'fromLat',
-          x1: 'toLng',
-          y1: 'toLat',
-        },
-      })
-      .shape('arc')
-      .size(2)
+      .source(internationalData, { parser: arcParser })
+      .shape('arc3d')
+      .size(1)
       .color('#FF8A65')
       .style({
-        opacity: 0.7,
-        blur: 0.5,
+        lineType: 'dash',
+        dashArray: [5, 5],
+        opacity: 0.4,
+        segmentNumber: 30,
+        thetaOffset: 0.4,
+      });
+
+    // Couche 2 : avions animés le long de l'arc
+    internationalFlyLayer = new LineLayer({ zIndex: 6, blend: 'normal' })
+      .source(internationalData, { parser: arcParser })
+      .shape('arc3d')
+      .size(15)
+      .color('#FF8A65')
+      .texture('plane')
+      .animate({
+        duration: 1,
+        interval: 0.2,
+        trailLength: 0.05,
+      })
+      .style({
+        textureBlend: 'replace',
+        lineTexture: true,
+        iconStep: 10,
+        segmentNumber: 30,
+        thetaOffset: 0.4,
       });
 
     scene.addLayer(internationalArcLayer);
+    scene.addLayer(internationalFlyLayer);
 
     // Événements sur les arcs
     internationalArcLayer.on('mousemove', onArcHover);
@@ -217,10 +281,20 @@ function buildArcData(routeList) {
       const from = airportByIata[r.from];
       const to = airportByIata[r.to];
       if (!from || !to) return null;
+
+      // Correction antiméridien : tracer l'arc par le chemin le plus court
+      let toLng = to.lng;
+      const lngDiff = toLng - from.lng;
+      if (lngDiff > 180) {
+        toLng -= 360;
+      } else if (lngDiff < -180) {
+        toLng += 360;
+      }
+
       return {
         fromLng: from.lng,
         fromLat: from.lat,
-        toLng: to.lng,
+        toLng,
         toLat: to.lat,
         from: r.from,
         to: r.to,
@@ -255,38 +329,6 @@ function hidePopup() {
   }
 }
 
-// ─── Highlight d'un aéroport ──────────────────────────────────────────────────
-
-export function highlightAirport(iata) {
-  highlightedAirport = iata;
-  const filteredRoutes = activeRoutes.filter(r => r.from === iata || r.to === iata);
-  renderRoutes(filteredRoutes);
-
-  const infoEl = document.getElementById('selected-info');
-  if (infoEl) {
-    const airport = airportByIata[iata];
-    if (airport) {
-      infoEl.innerHTML = `
-        <h3>${airport.iata} — ${airport.name}</h3>
-        <p>${airport.island} · ${ARCHIPELS[airport.archipel]?.name || airport.archipel}</p>
-        <p><strong>${filteredRoutes.length}</strong> route(s) directe(s)</p>
-        <button id="btn-reset" class="btn-secondary">Voir toutes les routes</button>
-      `;
-      document.getElementById('btn-reset')?.addEventListener('click', resetHighlight);
-    }
-  }
-}
-
-export function resetHighlight() {
-  highlightedAirport = null;
-  renderRoutes(activeRoutes);
-
-  const infoEl = document.getElementById('selected-info');
-  if (infoEl) {
-    infoEl.innerHTML = '<p class="hint">Cliquez sur un aéroport pour voir ses routes</p>';
-  }
-}
-
 // ─── Filtres ──────────────────────────────────────────────────────────────────
 
 export function applyFilters({ showInterIsland, showInternational, selectedAirline }) {
@@ -300,10 +342,6 @@ export function applyFilters({ showInterIsland, showInternational, selectedAirli
   }
   if (selectedAirline && selectedAirline !== 'all') {
     filtered = filtered.filter(r => r.airline === selectedAirline);
-  }
-
-  if (highlightedAirport) {
-    filtered = filtered.filter(r => r.from === highlightedAirport || r.to === highlightedAirport);
   }
 
   renderRoutes(filtered);
