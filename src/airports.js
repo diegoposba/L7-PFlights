@@ -7,7 +7,7 @@ export const ARCHIPELS = {
   MARQUISES: { name: 'Îles Marquises', color: '#FFB74D' },
   AUSTRALES: { name: 'Îles Australes', color: '#CE93D8' },
   GAMBIER: { name: 'Îles Gambier', color: '#F06292' },
-  INTERNATIONAL: { name: 'International', color: '#FF8A65' },
+  INTERNATIONAL: { name: 'International', color: '#FFD54F' },
 };
 
 export const airports = [
@@ -80,9 +80,9 @@ export const airports = [
   { iata: 'CDG', name: 'Paris Charles de Gaulle', island: 'France', archipel: 'INTERNATIONAL', lng: 2.5479, lat: 49.0097 },
   { iata: 'LAX', name: 'Los Angeles International', island: 'USA', archipel: 'INTERNATIONAL', lng: -118.4085, lat: 33.9416 },
   { iata: 'SFO', name: 'San Francisco International', island: 'USA', archipel: 'INTERNATIONAL', lng: -122.3750, lat: 37.6213 },
-  { iata: 'NRT', name: 'Tokyo Narita', island: 'Japon', archipel: 'INTERNATIONAL', lng: 140.3929, lat: 35.7647 },
-  { iata: 'AKL', name: 'Auckland International', island: 'Nouvelle-Zélande', archipel: 'INTERNATIONAL', lng: 174.7850, lat: -37.0082 },
-  { iata: 'SYD', name: 'Sydney Kingsford Smith', island: 'Australie', archipel: 'INTERNATIONAL', lng: 151.1772, lat: -33.9461 },
+  { iata: 'NRT', name: 'Tokyo Narita', island: 'Japon', archipel: 'INTERNATIONAL', lng: -219.6071, lat: 35.7647 },
+  { iata: 'AKL', name: 'Auckland International', island: 'Nouvelle-Zélande', archipel: 'INTERNATIONAL', lng: -185.2150, lat: -37.0082 },
+  { iata: 'SYD', name: 'Sydney Kingsford Smith', island: 'Australie', archipel: 'INTERNATIONAL', lng: -208.8228, lat: -33.9461 },
   { iata: 'SCL', name: 'Santiago Arturo Merino', island: 'Chili', archipel: 'INTERNATIONAL', lng: -70.7858, lat: -33.3930 },
   { iata: 'RAR', name: 'Rarotonga International', island: 'Îles Cook', archipel: 'INTERNATIONAL', lng: -159.8058, lat: -21.2028 },
   { iata: 'SEA', name: 'Seattle-Tacoma', island: 'USA', archipel: 'INTERNATIONAL', lng: -122.3088, lat: 47.4502 },

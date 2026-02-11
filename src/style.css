@@ -125,7 +125,7 @@ body {
 }
 
 .legend-dot.international {
-  background: #FF8A65;
+  background: #FFD54F;
 }
 
 .select-label {
@@ -144,6 +144,11 @@ select {
   font-size: 0.9em;
   cursor: pointer;
   outline: none;
+}
+
+select option {
+  background: #1a1f2e;
+  color: #e0e0e0;
 }
 
 select:focus {

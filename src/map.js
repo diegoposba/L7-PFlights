@@ -24,7 +24,7 @@ export function initMap(containerId) {
     map: new Mapbox({
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [-149.5, -15.5],
-      zoom: 1,
+      zoom: 3,
       pitch: 40,
       rotation: 10,
       minZoom: 2,
@@ -134,10 +134,12 @@ function renderAirports() {
   // Événements sur les aéroports PF
   airportLayer.on('mousemove', onAirportHover);
   airportLayer.on('mouseout', hidePopup);
+  airportLayer.on('click', onAirportClick);
 
   // Événements sur les aéroports internationaux
   intlAirportLayer.on('mousemove', onAirportHover);
   intlAirportLayer.on('mouseout', hidePopup);
+  intlAirportLayer.on('click', onAirportClick);
 }
 
 function onAirportHover(e) {
@@ -148,6 +150,15 @@ function onAirportHover(e) {
       <br/><span class="popup-detail">${island} · ${ARCHIPELS[archipel]?.name || archipel}</span>
     </div>
   `);
+}
+
+function onAirportClick(e) {
+  const { iata } = e.feature;
+  const select = document.getElementById('filter-airport');
+  if (select) {
+    select.value = iata;
+    select.dispatchEvent(new Event('change'));
+  }
 }
 
 // ─── Rendu des routes (arcs) ──────────────────────────────────────────────────
@@ -226,7 +237,7 @@ function renderRoutes(routeData) {
       .source(internationalData, { parser: arcParser })
       .shape('arc3d')
       .size(1)
-      .color('#FF8A65')
+      .color('#FFD54F')
       .style({
         lineType: 'dash',
         dashArray: [5, 5],
@@ -240,7 +251,7 @@ function renderRoutes(routeData) {
       .source(internationalData, { parser: arcParser })
       .shape('arc3d')
       .size(15)
-      .color('#FF8A65')
+      .color('#FFD54F')
       .texture('plane')
       .animate({
         duration: 1,
@@ -331,7 +342,7 @@ function hidePopup() {
 
 // ─── Filtres ──────────────────────────────────────────────────────────────────
 
-export function applyFilters({ showInterIsland, showInternational, selectedAirline }) {
+export function applyFilters({ showInterIsland, showInternational, selectedAirline, selectedAirport }) {
   let filtered = [...activeRoutes];
 
   if (!showInterIsland) {
@@ -342,6 +353,9 @@ export function applyFilters({ showInterIsland, showInternational, selectedAirli
   }
   if (selectedAirline && selectedAirline !== 'all') {
     filtered = filtered.filter(r => r.airline === selectedAirline);
+  }
+  if (selectedAirport && selectedAirport !== 'all') {
+    filtered = filtered.filter(r => r.from === selectedAirport || r.to === selectedAirport);
   }
 
   renderRoutes(filtered);

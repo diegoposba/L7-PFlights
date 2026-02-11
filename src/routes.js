@@ -142,6 +142,11 @@ export const routes = [
   { from: 'PPT', to: 'AKL', airline: 'NZ', type: 'international' },
 
   // ═══════════════════════════════════════════════════════════════
+  // QANTAS (QF)
+  // ═══════════════════════════════════════════════════════════════
+  { from: 'PPT', to: 'SYD', airline: 'QF', type: 'international' },
+
+  // ═══════════════════════════════════════════════════════════════
   // HAWAIIAN AIRLINES (HA)
   // ═══════════════════════════════════════════════════════════════
   { from: 'PPT', to: 'HNL', airline: 'HA', type: 'international' },

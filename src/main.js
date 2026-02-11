@@ -1,7 +1,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './style.css';
 import { initMap, applyFilters } from './map.js';
-import { ARCHIPELS } from './airports.js';
+import { airports, ARCHIPELS } from './airports.js';
 import { AIRLINES, activeAirlines } from './routes.js';
 
 // ─── Initialisation ───────────────────────────────────────────────────────────
@@ -35,6 +35,19 @@ if (airlineSelect) {
   }
 }
 
+// ─── Sélecteur d'aéroport ────────────────────────────────────────────────────
+
+const airportSelect = document.getElementById('filter-airport');
+if (airportSelect) {
+  const sorted = [...airports].sort((a, b) => a.iata.localeCompare(b.iata));
+  for (const ap of sorted) {
+    const option = document.createElement('option');
+    option.value = ap.iata;
+    option.textContent = `${ap.iata} — ${ap.name}`;
+    airportSelect.appendChild(option);
+  }
+}
+
 // ─── Gestion des filtres ──────────────────────────────────────────────────────
 
 function onFilterChange() {
@@ -42,9 +55,11 @@ function onFilterChange() {
     showInterIsland: document.getElementById('filter-interisland').checked,
     showInternational: document.getElementById('filter-international').checked,
     selectedAirline: document.getElementById('filter-airline').value,
+    selectedAirport: document.getElementById('filter-airport').value,
   });
 }
 
 document.getElementById('filter-interisland')?.addEventListener('change', onFilterChange);
 document.getElementById('filter-international')?.addEventListener('change', onFilterChange);
 document.getElementById('filter-airline')?.addEventListener('change', onFilterChange);
+document.getElementById('filter-airport')?.addEventListener('change', onFilterChange);
